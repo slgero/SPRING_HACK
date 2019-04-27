@@ -3,7 +3,7 @@ from telebot import types
 tokenn = "865961769:AAFWrT4pHI1bJnp4KQ1fylL2IOsSL_r1FRs"
 import requests
 import telebot
-sotrudniki = {'123':'Максим Штиль', '321':'Сачков Владимир'}
+sotrudniki = [{'name':'Максим Штиль', 'login':'Max', 'password':'shtil123'}, {'name':'Сачков Владимир', 'login':'Vova', 'password':'sachkov321'}]
 chatt = {}
 awaitkons = []
 awaitcust = []
@@ -24,7 +24,15 @@ markup3 = make_markup(markup3, buttonset3)
 markup2 = make_markup(markup2, buttonset2)
 markup1 = make_markup(markup1, buttonset1)
 bot = telebot.TeleBot(tokenn)
+loginposl = {}
 telebot.apihelper.proxy = {'https': 'socks5://geek:socks@t.geekclass.ru:7777'}
+def get_pic(lat, lon):
+    APP_ID = "WJKW4xjeKvXn9u5eZ7cw"
+    APP_CODE = "2kxrT-Jmes601s_BwANBYw"
+    lat = str(lat)
+    lon = str(lon)
+    url = f"https://image.maps.api.here.com/mia/1.6/mapview?app_id={APP_ID}&app_code={APP_CODE}&lat={lat}&lon={lon}&vt=0&z=14"
+    data = requests.get(url)
 def check(que1, que2, chatt):
     que1 = que1
     chatt = chatt
@@ -51,6 +59,11 @@ def check(que1, que2, chatt):
         return (que1,que2,chatt)
     else:
         return (que1,que2,chatt)
+def checkna(password,login,data):
+    for k in data:
+        if password == k['password'] and login == k['login']:
+            return k
+    return False
 @bot.message_handler(content_types=["text"])
 def handle_text(message):
     global chatt, awaitkons, awaitcust
@@ -93,6 +106,56 @@ def handle_text(message):
                 text=message.text,
                 reply_markup=markup2
             )
+    elif str(message.chat.id) in list(loginposl.keys()):
+        if loginposl[str(message.chat.id)]['steps'] % 2 == 1:
+            loginposl['login'] = message.text
+            loginposl[str(message.chat.id)]['steps'] += 1
+            bot.send_message(
+                chat_id=message.chat.id,
+                text='Впишите ваш пароль',
+                reply_markup=None
+            )
+        else:
+            loginposl['password'] = message.text
+            loginposl[str(message.chat.id)]['steps'] += 1
+            print('kek')
+            cheker = checkna(loginposl['password'], loginposl['login'], sotrudniki)
+            print('lol')
+            if cheker:
+                bot.send_message(
+                    chat_id=message.chat.id,
+                    text='Добро пожаловать, {}'.format(cheker['name']),
+                    reply_markup=None
+                )
+                del loginposl[str(message.chat.id)]
+                sotrsotr[str(message.chat.id)] = cheker['name']
+                awaitkons.append(str(message.chat.id))
+                awaitcust, awaitkons, chatt = check(awaitcust, awaitkons, chatt)
+                if str(message.chat.id) not in list(chatt.keys()):
+                    bot.send_message(
+                        chat_id=message.chat.id,
+                        text='Ожидайте пока к вам подключится клиент... Чтобы выйти, нажмите кнопку /выйти',
+                        reply_markup=markup3
+                    )
+            else:
+                if loginposl[str(message.chat.id)]['steps'] == 7:
+                    bot.send_message(
+                        chat_id=message.chat.id,
+                        text='У вас закончились попытки. Возвращаю в главное меню',
+                        reply_markup=markup1
+                    )
+                    del loginposl[str(message.chat.id)]
+                else:
+                    bot.send_message(
+                        chat_id=message.chat.id,
+                        text='Неверный логин или пароль. Осталось {} попыток'.format(int((7-loginposl[str(message.chat.id)]['steps'])/2)),
+                        reply_markup=None
+                    )
+                    bot.send_message(
+                        chat_id=message.chat.id,
+                        text='Впишите ваш логин',
+                        reply_markup=None
+                    )
     elif str(message.chat.id) in awaitkons:
         if '/выйти' in message.text:
             awaitkons.remove(str(message.chat.id))
@@ -123,7 +186,14 @@ def handle_text(message):
                 reply_markup=markup3
             )
     else:
-        if 'консул ' in message.text:
+        if 'консультант' == message.text:
+            loginposl[str(message.chat.id)] = {'steps':1,'login':'', 'password':''}
+            bot.send_message(
+                chat_id=message.chat.id,
+                text='Впишите пожалуйста ваш логин консультанта',
+                reply_markup=None
+            )
+            '''
             idd = message.text.replace('консул ', '')
             if idd in list(sotrudniki.keys()):
                 sotrsotr[str(message.chat.id)] = sotrudniki[idd]
@@ -135,6 +205,7 @@ def handle_text(message):
                         text='Ожидайте пока к вам подключится клиент... Чтобы выйти, нажмите кнопку /выйти',
                         reply_markup=markup3
                     )
+            '''
         elif 'Связаться с консультантом' in message.text:
 
             awaitcust.append(str(message.chat.id))
