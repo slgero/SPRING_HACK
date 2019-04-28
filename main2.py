@@ -331,7 +331,7 @@ def handle_text(message):
                     kartaiter(lococher[str(message.chat.id)]['sender'], message.chat.id, markup4)
                 elif message.text in lococher[str(message.chat.id)]['times']:
                     print(['Банк',lococher[str(message.chat.id)]['sender'].get_adress(), message.text,lococher[str(message.chat.id)]['sender'].get_number2()[1],lococher[str(message.chat.id)]['sender'].get_number2()[0]])
-                    make_pdf('Название Банка',lococher[str(message.chat.id)]['sender'].get_adress()[:35],lococher[str(message.chat.id)]['sender'].get_adress()[35:], message.text,lococher[str(message.chat.id)]['sender'].get_number2()[1],lococher[str(message.chat.id)]['sender'].get_number2()[0])
+                    make_pdf('Название банка',lococher[str(message.chat.id)]['sender'].get_adress()[:35],lococher[str(message.chat.id)]['sender'].get_adress()[35:], message.text,lococher[str(message.chat.id)]['sender'].get_number2()[1],lococher[str(message.chat.id)]['sender'].get_number2()[0])
                     bot.send_document(
                         chat_id=message.chat.id,
                         data=open('ticket.pdf','r'),
